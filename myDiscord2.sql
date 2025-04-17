@@ -56,7 +56,7 @@ DROP TABLE IF EXISTS tchat CASCADE;
 CREATE TABLE tchat (
 	tchat_id SERIAL PRIMARY KEY,
 	nom VARCHAR(50) NOT NULL,
-	serveur_id INT REFERENCES serveur(serveur_id),
+	serveur_id INT REFERENCES serveur(serveur_id)
 );
 
 INSERT INTO tchat VALUES (1, 'general', 1), (2, 'connerie', 1), (3, 'privé', 2);
