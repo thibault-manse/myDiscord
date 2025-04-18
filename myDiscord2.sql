@@ -40,7 +40,14 @@ DROP TABLE IF EXISTS membre_serveur CASCADE;
 CREATE TABLE membre_serveur(
 	utilisateur_id INT REFERENCES utilisateurs (utilisateur_id),
 	serveur_id INT REFERENCES serveur (serveur_id),
-	banni INT NOT NULL, --0 = Non banni; 1 = Banni
+	PRIMARY KEY (utilisateur_id, serveur_id)
+);
+
+DROP TABLE IF EXISTS membre_banni CASCADE;
+
+CREATE TABLE membre_banni(
+	utilisateur_id INT REFERENCES utilisateurs (utilisateur_id),
+	serveur_id INT REFERENCES serveur (serveur_id),
 	PRIMARY KEY (utilisateur_id, serveur_id)
 );
 
@@ -56,7 +63,7 @@ DROP TABLE IF EXISTS messages CASCADE;
 
 CREATE TABLE messages (
 	message_id SERIAL PRIMARY KEY,
-	serveur_id INT REFERENCES serveur(serveur_id),
+	tchat_id INT REFERENCES serveur(serveur_id),
 	envoyeur_id INT REFERENCES utilisateurs(utilisateur_id),
 	contenu TEXT NOT NULL,
 	date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
@@ -100,6 +107,6 @@ INSERT INTO utilisateurs VALUES (1,'Takemi13', 'Biduledu13@gmail.com', '12345', 
 
 INSERT INTO serveur VALUES (1,'Premier serveur', 1, 0, 'Une image'), (2, 'tchat privé', 1, 1, 'une image');
 
-INSERT INTO membre_serveur VALUES (1, 1, 0), (1, 2, 0), (2, 1, 0), (2, 2, 0), (3,1, 0);
+INSERT INTO membre_serveur VALUES (1, 1), (1, 2), (2, 1), (2, 2), (3, 1);
 
 INSERT INTO tchat VALUES (1, 'general', 1), (2, 'connerie', 1), (3, 'privé', 2);
