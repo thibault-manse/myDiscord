@@ -22,6 +22,7 @@ CREATE TABLE utilisateurs (
 	mail VARCHAR(255) NOT NULL,
 	motdepasse VARCHAR(255) NOT NULL,
 	biographie TEXT,
+	status_utilisateur INT NOT NULL, --1 : En ligne, 2 : Hors ligne/invisible, 3 : Occupé
 	image_url TEXT NOT NULL
 );
 
@@ -101,9 +102,9 @@ CREATE TABLE fichier(
 );
 
 
-INSERT INTO utilisateurs VALUES (1,'Takemi13', 'Biduledu13@gmail.com', '12345', 'Je sais pas quoi mettre', 'Mon image'),
-(2, 'Ruirui@Pilaf', 'ZoumTallon@gmail.com', '12345', 'Je vend du viagra à 6 centimes', 'Mon image'),
-(3, 'Mochi', 'Zebullon82@gmail.com', '1234', 'NI KONI KONIIIIIII :3', 'Mon image');
+INSERT INTO utilisateurs VALUES (1,'Takemi13', 'Biduledu13@gmail.com', '12345', 'Je sais pas quoi mettre', 2, 'Mon image'),
+(2, 'Ruirui@Pilaf', 'ZoumTallon@gmail.com', '12345', 'Je vend du viagra à 6 centimes', 2, 'Mon image'),
+(3, 'Mochi', 'Zebullon82@gmail.com', '1234', 'NI KONI KONIIIIIII :3', 2, 'Mon image');
 
 INSERT INTO serveur VALUES (1,'Premier serveur', 1, 0, 'Une image'), (2, 'tchat privé', 1, 1, 'une image');
 
