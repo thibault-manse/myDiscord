@@ -1,10 +1,8 @@
-// client.c
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <winsock2.h>
 #include <windows.h>
-#include <time.h>
 
 #pragma comment(lib, "ws2_32.lib")
 
@@ -94,6 +92,7 @@ int main() {
     printf("Connecté à %s:%d\n", SERVER_IP, PORT);
     set_color(7);
 
+    // Recevoir et envoyer les messages
     CreateThread(NULL, 0, receive_messages, NULL, 0, NULL);
     CreateThread(NULL, 0, send_messages, NULL, 0, NULL);
 
