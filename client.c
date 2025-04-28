@@ -3,6 +3,7 @@
 #include <string.h>
 #include <winsock2.h>
 #include <windows.h>
+#include <time.h> // Ajouté pour utiliser time() et localtime()
 
 #pragma comment(lib, "ws2_32.lib")
 
@@ -20,7 +21,7 @@ void set_color(int color) {
 
 void print_time() {
     time_t now = time(NULL);
-    struct tm *t = localtime(&now);
+    struct tm *t = localtime(&now); // Utilisation correcte de localtime
     printf("[%02d:%02d:%02d] ", t->tm_hour, t->tm_min, t->tm_sec);
 }
 
@@ -92,7 +93,6 @@ int main() {
     printf("Connecté à %s:%d\n", SERVER_IP, PORT);
     set_color(7);
 
-    // Recevoir et envoyer les messages
     CreateThread(NULL, 0, receive_messages, NULL, 0, NULL);
     CreateThread(NULL, 0, send_messages, NULL, 0, NULL);
 
