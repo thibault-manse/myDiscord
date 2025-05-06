@@ -34,6 +34,8 @@ void *receive_messages_thread(void *arg) {
 
     while ((len = recv(sock, buffer, sizeof(buffer)-1, 0)) > 0) {
         buffer[len] = '\0';
+
+        printf("CLIENT RECOIT : %s\n", buffer);
         g_idle_add((GSourceFunc)update_ui_with_received_message, g_strdup(buffer));
     }
 
@@ -42,7 +44,34 @@ void *receive_messages_thread(void *arg) {
 }
 
 gboolean update_ui_with_received_message(gpointer data) {
-    const char *text = (const char *)data;
+    const char *raw = (const char *)data;
+    char buffer[1024];
+    strncpy(buffer, raw, sizeof(buffer));
+    buffer[sizeof(buffer)-1] = '\0';
+
+    char *sender = strtok(buffer, ":");
+    char *receiver = strtok(NULL, ":");
+    char *text = strtok(NULL, "\0");
+
+    if (!sender || !receiver || !text) {
+        g_free(data);
+        return FALSE;
+    }
+    // Ajouter dans le tableau messages[]
+    if (message_count < MAX_MESSAGES) {
+        strncpy(messages[message_count].sender, sender, sizeof(messages[message_count].sender));
+        strncpy(messages[message_count].receiver, receiver, sizeof(messages[message_count].receiver));
+        strncpy(messages[message_count].text, text, sizeof(messages[message_count].text));
+        message_count++;
+}
+
+
+    // N'affiche que si c'est dans la conversation courante
+    if (!((strcmp(sender, current_friend) == 0 && strcmp(receiver, current_user) == 0) ||
+          (strcmp(sender, current_user) == 0 && strcmp(receiver, current_friend) == 0))) {
+        g_free(data);
+        return FALSE;
+    }
 
     GtkWidget *msg_container = gtk_box_new(GTK_ORIENTATION_VERTICAL, 0);
     gtk_widget_set_margin_top(msg_container, 5);
@@ -50,7 +79,10 @@ gboolean update_ui_with_received_message(gpointer data) {
     gtk_widget_set_margin_start(msg_container, 10);
     gtk_widget_set_margin_end(msg_container, 10);
 
-    GtkWidget *label = gtk_label_new(text);
+    char display_text[1100];
+    snprintf(display_text, sizeof(display_text), "%s : %s", sender, text);
+
+    GtkWidget *label = gtk_label_new(display_text);
     gtk_style_context_add_class(gtk_widget_get_style_context(label), "message-bubble");
     gtk_label_set_xalign(GTK_LABEL(label), 0);
 
@@ -64,17 +96,23 @@ gboolean update_ui_with_received_message(gpointer data) {
 
     gtk_widget_show_all(message_box);
     g_free(data);
-
     return FALSE;
 }
+
 
 
 // Fonction pour envoyer un message par le réseau
 void send_network_message(const char *text) {
     if (sock > 0 && text && strlen(text) > 0) {
-        send(sock, text, strlen(text), 0);
+        char msg[1024];
+        snprintf(msg, sizeof(msg), "%s", text);  // pas besoin de \n ici
+
+        int bytes_sent = send(sock, msg, strlen(msg), 0);
+        printf("message send(): %d octets envoyés → \"%s\"\n", bytes_sent, msg);
+        fflush(stdout);
     }
 }
+
 
 
 void toggle_sidebar(GtkButton *button, gpointer user_data) {
@@ -176,14 +214,50 @@ void update_conversation() {
 
 void send_message_clicked(GtkButton *button, gpointer user_data) {
     const char *text = gtk_entry_get_text(GTK_ENTRY(message_entry));
+
+    // ✅ Vérifie qu'un destinataire est sélectionné
+    if (strlen(current_friend) == 0) {
+        printf("❗ Aucun ami sélectionné. Message non envoyé.\n");
+        return;
+    }
+
+    // ✅ Vérifie que le message n'est pas vide
     if (strlen(text) == 0) return;
 
+    // ✅ Prépare le message formaté pour le serveur : sender:receiver:message
     char buffer[1024];
     snprintf(buffer, sizeof(buffer), "%s:%s:%s", current_user, current_friend, text);
 
-    send_network_message(buffer);  
-    gtk_entry_set_text(GTK_ENTRY(message_entry), "");
+    printf("✉️ Envoi vers %s : %s\n", current_friend, text);  // debug
+
+    send_network_message(buffer); // envoi au serveur
+    gtk_entry_set_text(GTK_ENTRY(message_entry), ""); // vide l'entrée
+
+    // ✅ Affiche immédiatement le message dans l'interface
+    char display_buffer[1024];
+    snprintf(display_buffer, sizeof(display_buffer), "%s : %s", current_user, text);
+
+    GtkWidget *msg_container = gtk_box_new(GTK_ORIENTATION_VERTICAL, 0);
+    gtk_widget_set_margin_top(msg_container, 5);
+    gtk_widget_set_margin_bottom(msg_container, 5);
+    gtk_widget_set_margin_start(msg_container, 10);
+    gtk_widget_set_margin_end(msg_container, 10);
+
+    GtkWidget *label = gtk_label_new(display_buffer); // <-- on affiche bien le texte ici
+    gtk_style_context_add_class(gtk_widget_get_style_context(label), "message-bubble");
+    gtk_label_set_xalign(GTK_LABEL(label), 0);  // alignement à gauche
+
+    GtkWidget *separator = gtk_separator_new(GTK_ORIENTATION_HORIZONTAL);
+    gtk_widget_set_margin_top(separator, 5);
+
+    gtk_box_pack_start(GTK_BOX(msg_container), label, FALSE, FALSE, 0);
+    gtk_box_pack_start(GTK_BOX(msg_container), separator, FALSE, FALSE, 0);
+
+    gtk_box_pack_end(GTK_BOX(message_box), msg_container, FALSE, FALSE, 0);
+    gtk_widget_show_all(message_box);
 }
+
+
 
 
 static void activate(GtkApplication* app, gpointer user_data) {
