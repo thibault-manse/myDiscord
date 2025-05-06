@@ -9,6 +9,7 @@
 #include <netinet/tcp.h>
 #include <sys/socket.h>
 #include "messagerie.h"
+#include <libpq-fe.h>
 
 #define PORT 8080
 #define MAX_CLIENTS 10
@@ -108,6 +109,15 @@ int main() {
     int server_socket, client_socket;
     struct sockaddr_in server, client;
     socklen_t client_len = sizeof(client);
+    const char *conninfo = "dbname=mydiscord user=postgres password=dvjmfr5e host=localhost port=5432";
+
+    PGconn *conn = PQconnectdb(conninfo);
+
+    if (PQstatus(conn) != CONNECTION_OK) {
+        fprintf(stderr, "Erreur de connexion : %s", PQerrorMessage(conn));
+        PQfinish(conn);
+        return 1;
+    }
 
     server_socket = socket(AF_INET, SOCK_STREAM, 0);
     if (server_socket == -1) {
