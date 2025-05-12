@@ -119,6 +119,8 @@ int main() {
         return 1;
     }
 
+    printf("Connexion réussie à PostgreSQL !\n");
+
     server_socket = socket(AF_INET, SOCK_STREAM, 0);
     if (server_socket == -1) {
         perror("socket");
